@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+
+    # Build the docker image from the Dockerfile.backend in the cirrostrats-backend directory
+  backend:
+    build:
+      context: ./cirrostrats-backend
+      dockerfile: Dockerfile.backend
+    # Connect the backend service to the backend network
+    networks:
+      - backend_net
+
+    # Build the frontend Docker image from the Dockerfile.frontend in the Cirrostrats-frontend directory
+  frontend:
+    build:
+      context: ./cirrostrats-frontend
+      dockerfile: Dockerfile.frontend
+    expose:
+      - "5173"
+    networks:
+      - backend_net
+
+  nginx:
+    image: nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - backend_net
+
+networks:
+  backend_net:
+    driver: bridge
