@@ -1,38 +1,40 @@
-version: '3'
+version: '3.8'
 
 services:
-
-    # Build the docker image from the Dockerfile.backend in the cirrostrats-backend directory
-  backend:
-    build:
-      context: ./cirrostrats-backend
-      dockerfile: Dockerfile.backend
-    # Connect the backend service to the backend network
-    networks:
-      - backend_net
-
-    # Build the frontend Docker image from the Dockerfile.frontend in the Cirrostrats-frontend directory
   frontend:
+    # Build the docker image from the Dockerfile.frontend thats in the cirrostrats-frontend directory
     build:
       context: ./cirrostrats-frontend
       dockerfile: Dockerfile.frontend
-    expose:
-      - "5173"
+    ports:
+      - "5173:5173"
+    # Connect the frontend service to the base network that all containers will share.
     networks:
-      - backend_net
+      - base-network
+
+  backend:
+    build:
+    # Build the docker image from the Dockerfile.backend in the cirrostrats-backend directory
+      context: ./cirrostrats-backend
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    networks:
+      - base-network
 
   nginx:
     image: nginx
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
     ports:
       - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    # TODO: Check what the difference is between the above^^ and this - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
     depends_on:
-      - backend
       - frontend
+      - backend
     networks:
-      - backend_net
+      - base-network
 
 networks:
-  backend_net:
+  base-network:
     driver: bridge
