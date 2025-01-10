@@ -48,40 +48,51 @@ services:
       - base-network
   
   redis:
+    # deploy:   # This was used previously to prevent it from spawning in development. Accompany with .env file and set Run_Celery=1 if using this feature in production.
+      # replicas: ${RUN_CELERY:-0}  # Defaults to 0 containers: no Celery in development
     image: redis
     ports:
       # Format is "HOST_PORT:CONTAINER_PORT"
       - "6379:6379"     # TODO: What is the significance of this port?
     networks:
       - base-network
-  
+    profiles:     # use docker compose --profile production up in the production environment
+      - production
+
   celery:
+    # deploy:   # This was used previously to prevent it from spawning in development. Accompany with .env file and set Run_Celery=1 if using this feature in production.
+      # replicas: ${RUN_CELERY:-0}  # Defaults to 0 containers: no Celery in development
     container_name: celery_worker
     build:
-      context: ./cirrostrats-backend/routes     # This is where the celery_app.py file is
-      dockerfile: Dockerfile.celery   # use this if you want to build the docker image from the Dockerfile.celery and isolate the command from the rest of the Dockerfile
-    command: celery -A celery_app worker --loglevel=info      # Execute the tasks defined in celery_app.py
+      context: ./cirrostrats-backend      # This is where the celery_app.py file is
+      dockerfile: routes/Dockerfile.celery   # use this if you want to build the docker image from the Dockerfile.celery and isolate the command from the rest of the Dockerfile
+    command: celery -A routes.celery_app worker --loglevel=info      # Execute the tasks defined in celery_app.py This takes preecedence over the dockerfile command
     depends_on:
       - redis
-    # volumes:      # Changes are not reflected instantly in the container so this is not required for now.
-      # - ./cirrostrats-backend/routes:/app
+    volumes:      # Changes are not reflected instantly in celery. Restart container to see changes.
+      - ./cirrostrats-backend:/app
     networks:
       - base-network
+    profiles:     # use docker compose --profile production up in the production environment
+      - production
 
   celery-beat:
+    # deploy:   # This was used previously to prevent it from spawning in development. Accompany with .env file and set Run_Celery=1 if using this feature in production.
+      # replicas: ${RUN_CELERY:-0}  # Defaults to 0 containers: no Celery in development
     container_name: celery_beat
     build:
-      context: ./cirrostrats-backend/routes     # This is where the celery_app.py file is
-      # context: .
-      dockerfile: Dockerfile.celery
-    command: celery -A celery_app beat --loglevel=info      # Schedules the tasks defined in celery_app.py
+      context: ./cirrostrats-backend      # This is where the celery_app.py file is
+      dockerfile: routes/Dockerfile.celery
+    command: celery -A routes.celery_app beat --loglevel=info      # This takes preecedence over the dockerfile command
     depends_on:
       - redis
       - celery
-    # volumes:      # This is not required since changes are not reflected instantly in the container.
-      # - .:/app
+    volumes:      # Changes are not reflected instantly in celery. Restart container to see changes.
+      - ./cirrostrats-backend:/app
     networks:
       - base-network
+    profiles:     # use docker compose --profile production up in the production environment
+      - production
 
 
 networks:
