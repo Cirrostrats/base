@@ -9,7 +9,7 @@ services:
       - "5173:5173"
     volumes:  # mount the cirrostrats-frontend directory on the host to the /app directory on the container
       - ./cirrostrats-frontend:/app
-      - /app/node_modules/     # This prevents overwriting the node_modules directory inside the container with the potentially empty node_modules directory on your host machine.
+      - node_modules:/app/node_modules     # This prevents overwriting the node_modules directory inside the container with the potentially empty node_modules directory on your host machine.
       # Without this^^, the node_modules directory inside the container would be erased because the ./cirrostrats-frontend folder from the host does not typically contain node_modules unless npm install has been run locally.
       # Ensures node_modules is container-specific and avoids conflicts between host and container dependencies.
 
@@ -99,4 +99,6 @@ networks:
   base-network:
     driver: bridge
 
+volumes:
+  node_modules:
 
