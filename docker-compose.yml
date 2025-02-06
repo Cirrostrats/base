@@ -38,8 +38,8 @@ services:
     ports:
       # Format is "HOST_PORT:CONTAINER_PORT"
       - "80:80"
-    # volumes:    # If working on nginx and want changes to be reflected in the container, use the volumes
-      # - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    volumes:    # If working on nginx and want changes to be reflected in the container, use the volumes
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     # TODO: Check what the difference is between the above^^ and this - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - frontend
@@ -69,8 +69,8 @@ services:
     command: celery -A routes.celery_app worker --loglevel=info      # Execute the tasks defined in celery_app.py This takes preecedence over the dockerfile command
     depends_on:
       - redis
-    # volumes:      # Changes are not reflected instantly in celery. Restart container to see changes.
-      # - ./cirrostrats-backend:/app
+    volumes:      # Changes are not reflected instantly in celery. Restart container to see changes.
+      - ./cirrostrats-backend:/app
     networks:
       - base-network
     profiles:     # use docker compose --profile production up in the production environment
@@ -87,8 +87,8 @@ services:
     depends_on:
       - redis
       - celery
-    # volumes:      # Changes are not reflected instantly in celery. Restart container to see changes.
-      # - ./cirrostrats-backend:/app
+    volumes:      # Changes are not reflected instantly in celery. Restart container to see changes.
+      - ./cirrostrats-backend:/app
     networks:
       - base-network
     profiles:     # use docker compose --profile production up in the production environment
