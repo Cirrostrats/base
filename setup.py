@@ -44,12 +44,12 @@ branch_work(repo_link=backend_repo, folder="cirrostrats-backend")
 
 input("***Attention: You will have to create .env files as follows:(press enter to continue...)\n")
 
-input("create .env file for frontend ./cirrostrats-frontend/.env for React and include appropriate variables as listed in README.md(press enter once done...)\n")
+input("create .env file for frontend ./cirrostrats-frontend/.env for React and include appropriate variables(press enter once done...)\n")
 check_for_env_frontend = Path("./cirrostrats-frontend/.env").exists()
 if not check_for_env_frontend:
     input("***Caution the file ./cirrostrats-frontend/.env does not exist - code may break. Press enter to continue without it...")
 
-input("create .env file for backend ./cirrostrats-backend/.env for MongoDB and local work(press enter once done...)\n")
+input("create .env file for backend ./cirrostrats-backend/.env and include appropriate variables(press enter once done...)\n")
 check_for_env_backend = Path("./cirrostrats-backend/.env").exists()
 if not check_for_env_backend:
     input("***Caution** the file ./cirrostrats-backend/.env does not exist - code may break. Press enter to continue without it...")
