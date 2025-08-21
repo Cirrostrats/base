@@ -4,6 +4,11 @@ services:
     build:
       context: ./cirrostrats-frontend     # Defines working directory from which the Docker will read files to build image. Docker can only access files within the context directory.
       dockerfile: Dockerfile.frontend
+      # This should take info from the .env file
+      # args: 
+      # - NODE_ENV=${ENV_STRICT_MODE}
+      args:
+      - NODE_ENV=development # Default, override for production
     ports:    #
       # Format is "HOST_PORT:CONTAINER_PORT". Mounts the port 5173 on the host to the port 5173 on the container. HOST_PORT can be accessed from the machine's browser at http://localhost:5173
       - "5173:5173"

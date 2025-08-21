@@ -1,4 +1,14 @@
 ## Docker container(spools up frontend, backend and nginx using docker)
+
+***If you need to install docker on linux use the shell file install-docker.. in the root directory (Mind the aws/ubu trails)***
+  ```bash
+   # To make file executable
+   chmod +x install-docker-aws.sh
+
+   # To run the shell file
+   ./install-docker-aws.sh
+   ```
+
 ***Initial Setup Only***
 1. **Clone the base repo:f** [https://github.com/Cirrostrats/base](https://github.com/Cirrostrats/base)
 2. **Navigate into this base repo folder**
