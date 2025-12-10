@@ -1,3 +1,6 @@
+license_file = "LICENSE.txt"
+
+
 from pathlib import Path
 import os,sys
 import subprocess
