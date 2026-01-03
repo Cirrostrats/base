@@ -1,0 +1,47 @@
+services:
+  frontend:   # Name of the service
+    # Build the docker image from the Dockerfile.frontend thats in the cirrostrats-frontend directory
+    build:
+      # THIS IS THE KEY: It tells Docker which stage to build
+      # target: ${BUILD_TARGET:-development} 
+      # args takes info from the .env file using ${} or hardcoded values supplied here. *** This sets the values used during image build NOT THE RUNTIME *** and this overrides the `ARG` stated in dockerfile.
+      # hence, for changes in args to take effect the image needs to be rebuilt.
+      args:
+        # - NODE_ENV=${ENV_STRICT_MODE}
+        - NODE_ENV=development # Default, override for production
+    ports:
+      # Maps Host 5173 -> Container 80 (Used by both Dev and Prod now)
+      - "5173:5173"
+    volumes:
+      # This volume is safe! 
+      # In Dev: It mounts code to /app (where Node runs).
+      # In Prod: It mounts code to /app (but Nginx serves from /usr/share/nginx/html, so this is ignored).
+      - ./cirrostrats-frontend:/app
+      - node_modules:/app/node_modules     
+      # ||||*** node_modules NOTE ***||||
+      # This prevents overwriting the node_modules directory inside the container with the potentially empty node_modules directory on your host machine.
+      # Without it the node_modules directory inside the container would be erased because the ./cirrostrats-frontend folder from the host does not typically contain node_modules unless npm install has been run locally.
+      # Ensures node_modules is container-specific and avoids conflicts between host and container dependencies.
+
+      # - /app/package-lock.json/
+    environment:
+      - CHOKIDAR_USEPOLLING=true  # Enables polling for file changes, useful for detecting updates in mounted volumes on systems like Docker Desktop for Windows/Mac.
+      - WATCHPACK_POLLING=true   # Ensures compatibility with polling-based file watchers, especially for live-reloading in development environments.
+
+  backend:
+    ports:
+      # Format is "HOST_PORT:CONTAINER_PORT"
+      - "8000:8000"
+    volumes:
+      - ./cirrostrats-backend:/app
+    environment:
+      ENV: development
+
+  nginx:
+    ports:
+      # Format is "HOST_PORT:CONTAINER_PORT"
+      - "80:80"
+    volumes:    # If working on nginx and want changes to be reflected in the container, use the volumes
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    # TODO: Check what the difference is between the above^^ and this - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+  

@@ -6,43 +6,15 @@ services:
       dockerfile: Dockerfile.frontend
       # THIS IS THE KEY: It tells Docker which stage to build
       # target: ${BUILD_TARGET:-development} 
-      # args takes info from the .env file using ${} or hardcoded values supplied here. *** This sets the values used during image build NOT THE RUNTIME *** and this overrides the `ARG` stated in dockerfile.
-      # hence, for changes in args to take effect the image needs to be rebuilt.
-      args:
-        # - NODE_ENV=${ENV_STRICT_MODE}
-        - NODE_ENV=development # Default, override for production
-    ports:
-      # Maps Host 5173 -> Container 80 (Used by both Dev and Prod now)
-      - "5173:5173"
-    volumes:
-      # This volume is safe! 
-      # In Dev: It mounts code to /app (where Node runs).
-      # In Prod: It mounts code to /app (but Nginx serves from /usr/share/nginx/html, so this is ignored).
-      - ./cirrostrats-frontend:/app
-      - node_modules:/app/node_modules     
-      # ||||*** node_modules NOTE ***||||
-      # This prevents overwriting the node_modules directory inside the container with the potentially empty node_modules directory on your host machine.
-      # Without it the node_modules directory inside the container would be erased because the ./cirrostrats-frontend folder from the host does not typically contain node_modules unless npm install has been run locally.
-      # Ensures node_modules is container-specific and avoids conflicts between host and container dependencies.
-
-      # - /app/package-lock.json/
     networks:     # Connect the frontend service to the base network that all containers will share.
       - base-network
       # - observability
-    environment:
-      - CHOKIDAR_USEPOLLING=true  # Enables polling for file changes, useful for detecting updates in mounted volumes on systems like Docker Desktop for Windows/Mac.
-      - WATCHPACK_POLLING=true   # Ensures compatibility with polling-based file watchers, especially for live-reloading in development environments.
 
   backend:
     build:
     # Build the docker image from the Dockerfile.backend in the cirrostrats-backend directory
       context: ./cirrostrats-backend
       dockerfile: Dockerfile.backend
-    ports:
-      # Format is "HOST_PORT:CONTAINER_PORT"
-      - "8000:8000"
-    volumes:
-      - ./cirrostrats-backend:/app
     networks:
       - base-network
       # - observability
@@ -54,12 +26,6 @@ services:
 
   nginx:
     image: nginx
-    ports:
-      # Format is "HOST_PORT:CONTAINER_PORT"
-      - "80:80"
-    volumes:    # If working on nginx and want changes to be reflected in the container, use the volumes
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-    # TODO: Check what the difference is between the above^^ and this - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - frontend
       - backend
@@ -67,54 +33,6 @@ services:
       - base-network
       # - observability
   
-  redis:
-    # deploy:   # This was used previously to prevent it from spawning in development. Accompany with .env file and set Run_Celery=1 if using this feature in production.
-      # replicas: ${RUN_CELERY:-0}  # Defaults to 0 containers: no Celery in development
-    image: redis
-    ports:
-      # Format is "HOST_PORT:CONTAINER_PORT"
-      - "6379:6379"     # TODO: What is the significance of this port?
-    networks:
-      - base-network
-    profiles:     # use docker compose --profile production up in the production environment
-      - production
-
-  celery:
-    # deploy:   # This was used previously to prevent it from spawning in development. Accompany with .env file and set Run_Celery=1 if using this feature in production.
-      # replicas: ${RUN_CELERY:-0}  # Defaults to 0 containers: no Celery in development
-    container_name: celery_worker
-    build:
-      context: ./cirrostrats-backend      # This is where the celery_app.py file is
-      dockerfile: routes/Dockerfile.celery   # use this if you want to build the docker image from the Dockerfile.celery and isolate the command from the rest of the Dockerfile
-    command: celery -A routes.celery_app worker --loglevel=info      # Execute the tasks defined in celery_app.py This takes preecedence over the dockerfile command
-    depends_on:
-      - redis
-    volumes:      # Changes are not reflected instantly in celery. Restart container to see changes.
-      - ./cirrostrats-backend:/app
-    networks:
-      - base-network
-    profiles:     # use docker compose --profile production up in the production environment
-      - production
-
-  celery-beat:
-    # deploy:   # This was used previously to prevent it from spawning in development. Accompany with .env file and set Run_Celery=1 if using this feature in production.
-      # replicas: ${RUN_CELERY:-0}  # Defaults to 0 containers: no Celery in development
-    container_name: celery_beat
-    build:
-      context: ./cirrostrats-backend      # This is where the celery_app.py file is
-      dockerfile: routes/Dockerfile.celery
-    command: celery -A routes.celery_app beat --loglevel=info      # This takes preecedence over the dockerfile command
-    depends_on:
-      - redis
-      - celery
-    volumes:      # Changes are not reflected instantly in celery. Restart container to see changes.
-      - ./cirrostrats-backend:/app
-    networks:
-      - base-network
-    profiles:     # use docker compose --profile production up in the production environment
-      - production
-
-
 networks:
   # observability:
   #   external: true

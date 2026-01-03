@@ -1,0 +1,31 @@
+services:
+  frontend:   # Name of the service
+    # Build the docker image from the Dockerfile.frontend thats in the cirrostrats-frontend directory
+    build:
+      args:
+        NODE_ENV: production
+
+    expose:
+      - "80"
+    # networks:     # Connect the frontend service to the base network that all containers will share.
+    #   - base-network
+    #   # - observability
+
+  backend:
+    environment:
+      ENV: production
+
+  nginx:
+    ports:
+      # Format is "HOST_PORT:CONTAINER_PORT"
+      - "80:80"
+
+# networks:
+#   # observability:
+#   #   external: true
+#   base-network:
+#     driver: bridge
+
+# volumes:
+#   node_modules:
+
