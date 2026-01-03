@@ -25,10 +25,12 @@ services:
       - "prometheus.path=/metrics"
 
   nginx:
-    image: nginx
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile.nginx
     depends_on:
       - frontend
-      - backend
+      # - backend
     networks:
       - base-network
       # - observability
