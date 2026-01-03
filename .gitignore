@@ -1,3 +1,4 @@
 /cirrostrats-frontend
 /cirrostrats-backend
 .env
+.DS_Store

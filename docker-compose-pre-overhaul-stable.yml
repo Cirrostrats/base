@@ -1,28 +1,22 @@
+# This is a working compose file for the pre-dec25-overhaul 'Release' branch on frontend and backend
 services:
   frontend:   # Name of the service
     # Build the docker image from the Dockerfile.frontend thats in the cirrostrats-frontend directory
     build:
       context: ./cirrostrats-frontend     # Defines working directory from which the Docker will read files to build image. Docker can only access files within the context directory.
       dockerfile: Dockerfile.frontend
-      # THIS IS THE KEY: It tells Docker which stage to build
-      # target: ${BUILD_TARGET:-development} 
-      # args takes info from the .env file using ${} or hardcoded values supplied here. *** This sets the values used during image build NOT THE RUNTIME *** and this overrides the `ARG` stated in dockerfile.
-      # hence, for changes in args to take effect the image needs to be rebuilt.
+      # This should take info from the .env file
+      # args: 
+      # - NODE_ENV=${ENV_STRICT_MODE}
       args:
-        # - NODE_ENV=${ENV_STRICT_MODE}
-        - NODE_ENV=development # Default, override for production
-    ports:
-      # Maps Host 5173 -> Container 80 (Used by both Dev and Prod now)
+      - NODE_ENV=development # Default, override for production
+    ports:    #
+      # Format is "HOST_PORT:CONTAINER_PORT". Mounts the port 5173 on the host to the port 5173 on the container. HOST_PORT can be accessed from the machine's browser at http://localhost:5173
       - "5173:5173"
-    volumes:
-      # This volume is safe! 
-      # In Dev: It mounts code to /app (where Node runs).
-      # In Prod: It mounts code to /app (but Nginx serves from /usr/share/nginx/html, so this is ignored).
+    volumes:  # mount the cirrostrats-frontend directory on the host to the /app directory on the container
       - ./cirrostrats-frontend:/app
-      - node_modules:/app/node_modules     
-      # ||||*** node_modules NOTE ***||||
-      # This prevents overwriting the node_modules directory inside the container with the potentially empty node_modules directory on your host machine.
-      # Without it the node_modules directory inside the container would be erased because the ./cirrostrats-frontend folder from the host does not typically contain node_modules unless npm install has been run locally.
+      - node_modules:/app/node_modules     # This prevents overwriting the node_modules directory inside the container with the potentially empty node_modules directory on your host machine.
+      # Without this^^, the node_modules directory inside the container would be erased because the ./cirrostrats-frontend folder from the host does not typically contain node_modules unless npm install has been run locally.
       # Ensures node_modules is container-specific and avoids conflicts between host and container dependencies.
 
       # - /app/package-lock.json/
