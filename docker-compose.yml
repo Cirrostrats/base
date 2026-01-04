@@ -24,16 +24,22 @@ services:
       - "prometheus.port=8080"  # Your metrics port
       - "prometheus.path=/metrics"
 
-  nginx:
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile.nginx
-    depends_on:
-      - frontend
-      # - backend
-    networks:
-      - base-network
-      # - observability
+  # Left this here for volumes during dev just in case. DO NOT REMOVE
+  # nginx:
+  #   build:
+  #     context: ./nginx
+  #     dockerfile: Dockerfile.nginx
+  #   ports:
+  #     # Format is "HOST_PORT:CONTAINER_PORT"
+  #     - "80:80"
+  #   volumes:    # If working on nginx and want changes to be reflected instantly in the container, use the volumes
+  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+  #   depends_on:
+  #     - frontend
+  #     # - backend
+  #   networks:
+  #     - base-network
+  #     # - observability
   
 networks:
   # observability:

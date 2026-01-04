@@ -16,9 +16,21 @@ services:
       ENV: production
 
   nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile.nginx
     ports:
       # Format is "HOST_PORT:CONTAINER_PORT"
       - "80:80"
+    # volumes:    # If working on nginx and want changes to be reflected in the container, use the volumes
+    #   - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    # TODO: Check what the difference is between the above^^ and this - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - base-network
+      # - observability
 
 # networks:
 #   # observability:

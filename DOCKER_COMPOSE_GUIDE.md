@@ -12,22 +12,31 @@ The project uses Docker Compose with a base configuration and environment-specif
 - **`docker-compose.homelab.yml`** - Homelab environment with Celery workers
 - **`docker-compose-fallback.yml`** - Complete standalone configuration (all services)
 
+### `-f` flag merge, inheritance and override semantics:
+The `-f` flag creates a left-to-right merge pipeline where each subsequent file overrides or extends the previous one. Basically the -f flag is incremental merge with later the file the higher the override priority. Understanding merge semantics is crucial. You can selectively override(from the right) just what you need while inheriting the rest fromt he previously stated file(from left).
+
+### `depends_on` config for a service:
+When a `depends_on` is specified into service it creates an upward dependency pull, not a downward one. When you say "start backend," Compose asks "what does backend need?" and starts those dependencies. It does not ask "what needs backend?" The dependency relationship flows one direction.
+
+
 ## Quick Start
 
 ### Development Environment
 
 For local development with hot-reload and volume mounting:
 
-```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up
-```
 
-Or using the shorthand to run in background:
+*** mind the `-f` flag ***
 ```bash
+# Spin(for dev only) both backend and frontend in the background. you can later use logs instead of up with -f flag to see logs
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+# Spin individual ones:
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d frontend
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d backend
 ```
 
-**Features:**
+
+**dev features:**
 - Frontend runs on port `5173` (Vite dev server)
 - Backend runs on port `8000` with auto-reload
 - Source code is mounted as volumes for live updates
@@ -37,13 +46,13 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 **Access:**
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:8000
-- Nginx: http://localhost:80
 
 ### Production Environment
 
 For production deployment:
 
 ```bash
+# NOTE: may have to build first if you were already running dev previously since some dev stuff wouldve hard baked into the image.
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
@@ -63,15 +72,15 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 For homelab deployment with Celery workers and Redis:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.homelab.yml --profile production up -d
+# NOTE: Mind that base compose is not stated since otherwise i'll also spin up frontend and backend and for homelab theyre not needed.
+docker compose -f docker-compose.homelab.yml --profile production up -d
 ```
 
 **Features:**
-- Includes all base services (frontend, backend, nginx)
 - Adds Redis service (port 6379)
 - Adds Celery worker for async task processing
 - Adds Celery Beat for scheduled tasks
-- Uses Docker Compose profiles to conditionally start services
+- Uses Docker Compose profiles to conditionally start those services
 
 **Services:**
 - `redis` - Message broker for Celery
@@ -82,7 +91,7 @@ docker compose -f docker-compose.yml -f docker-compose.homelab.yml --profile pro
 
 ### Fallback Configuration
 
-The `docker-compose-fallback.yml` is a complete standalone configuration that includes all services:
+The `docker-compose-fallback.yml` is a complete standalone configuration that includes all services and is only to be used as a fallback:
 
 ```bash
 docker compose -f docker-compose-fallback.yml up -d
@@ -118,24 +127,24 @@ This file contains everything in one place and can be used as a reference or whe
   - No auto-reload
   - Accessible via Nginx proxy
 
-### Nginx Service
+### Nginx Service - (prod only)
 
 - **Image:** `nginx:latest`
-- **Port:** `80:80` (in dev and prod)
+- **Port:** `80:80` (in prod)
 - **Configuration:** `./nginx/nginx.conf`
 - **Function:** 
   - Proxies frontend requests to frontend service
   - Proxies `/api/*` requests to backend service
-  - Configured for `beta.cirrostrats.us` domain
+  - Configured for `cirrostrats.us` domain
 
-### Redis Service (Homelab only)
+### Redis Service (Homelab only - requires production profiles tag)
 
 - **Image:** `redis:latest`
 - **Port:** `6379:6379`
 - **Purpose:** Message broker for Celery tasks
 - **Profile:** `production` (only starts with `--profile production`)
 
-### Celery Worker (Homelab only)
+### Celery Worker (Homelab only - requires production profiles tag)
 
 - **Build Context:** `./cirrostrats-backend`
 - **Dockerfile:** `routes/Dockerfile.celery`
@@ -144,7 +153,7 @@ This file contains everything in one place and can be used as a reference or whe
 - **Profile:** `production`
 - **Note:** Code changes require container restart (volumes don't auto-reload)
 
-### Celery Beat (Homelab only)
+### Celery Beat (Homelab only - requires production profiles tag)
 
 - **Build Context:** `./cirrostrats-backend`
 - **Dockerfile:** `routes/Dockerfile.celery`
@@ -254,7 +263,7 @@ All services are connected via the `base-network` bridge network, allowing them 
 - `./cirrostrats-frontend:/app` - Frontend source code
 - `./cirrostrats-backend:/app` - Backend source code
 - `node_modules:/app/node_modules` - Prevents overwriting container node_modules
-- `./nginx/nginx.conf:/etc/nginx/nginx.conf` - Nginx configuration
+- `./nginx/nginx.conf:/etc/nginx/nginx.conf` - Nginx configuration commented out for prod
 
 ### Production Volumes
 
