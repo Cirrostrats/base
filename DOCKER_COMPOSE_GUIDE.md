@@ -28,6 +28,7 @@ For local development with hot-reload and volume mounting:
 
 *** mind the `-f` flag ***
 ```bash
+# Verify proper .env variables are created/used for dev.
 # Spin(for dev only) both backend and frontend in the background. you can later use logs instead of up with -f flag to see logs
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 # Spin individual ones:
@@ -38,7 +39,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d backend
 
 **dev features:**
 - Frontend runs on port `5173` (Vite dev server)
-- Backend runs on port `8000` with auto-reload
+- Backend runs on port `8000` with auto-reload(hot-reload)
 - Source code is mounted as volumes for live updates
 - NODE_ENV set to `development`
 - File watching enabled for hot-reload
@@ -52,6 +53,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d backend
 For production deployment:
 
 ```bash
+# Verify proper .env variables are created/used for prod before running this command since it'll be baked into the image.
 # NOTE: may have to build first if you were already running dev previously since some dev stuff wouldve hard baked into the image.
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
