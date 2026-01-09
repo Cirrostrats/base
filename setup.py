@@ -54,14 +54,5 @@ check_for_env_backend = Path("./cirrostrats-backend/.env").exists()
 if not check_for_env_backend:
     input("***Caution** the file ./cirrostrats-backend/.env does not exist - code may break. Press enter to continue without it...")
 
-# Start Docker Compose
-type_of_env = input("Starting Docker Compose. Is this for developement? (y/n) ")
-
-# For production
-if type_of_env == "n":
-    subprocess.run(["docker", "compose", "--profile", "production", "up", "--build"])
-
-# For development
-else:
-    print('Starting Docker Compose for development...')
-    subprocess.run(["docker", "compose", "up"])
+print('Check compose markdown file, verify appropriate env files are in entirity and spin according to needs - dev, prod or homelab is available')
+# subprocess.run(["docker", "compose", "up"])

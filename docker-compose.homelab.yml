@@ -8,8 +8,8 @@ services:
       - "6379:6379"     # TODO: What is the significance of this port?
     networks:
       - base-network
-    profiles:     # use docker compose --profile production up in the production environment
-      - production
+    # profiles:     # use docker compose --profile production up in the production environment
+      # - production
 
   celery:
     # deploy:   # This was used previously to prevent it from spawning in development. Accompany with .env file and set Run_Celery=1 if using this feature in production.
@@ -25,8 +25,8 @@ services:
       - ./cirrostrats-backend:/app
     networks:
       - base-network
-    profiles:     # use docker compose --profile production up in the production environment
-      - production
+    # profiles:     # use docker compose --profile production up in the production environment
+      # - production
 
   celery-beat:
     # deploy:   # This was used previously to prevent it from spawning in development. Accompany with .env file and set Run_Celery=1 if using this feature in production.
@@ -43,8 +43,8 @@ services:
       - ./cirrostrats-backend:/app
     networks:
       - base-network
-    profiles:     # use docker compose --profile production up in the production environment
-      - production
+    # profiles:     # use docker compose --profile production up in the production environment
+      # - production
 
 
 networks:
