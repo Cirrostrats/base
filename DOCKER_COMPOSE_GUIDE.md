@@ -75,7 +75,7 @@ For homelab deployment with Celery workers and Redis:
 
 ```bash
 # NOTE: Mind that base compose is not stated since otherwise i'll also spin up frontend and backend and for homelab theyre not needed.
-docker compose -f docker-compose.homelab.yml --profile production up -d
+docker compose -f docker-compose.homelab.yml up -d
 ```
 
 **Features:**
