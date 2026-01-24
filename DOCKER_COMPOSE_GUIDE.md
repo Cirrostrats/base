@@ -74,7 +74,7 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 For homelab deployment with Celery workers and Redis:
 
 ```bash
-# NOTE: Mind that base compose is not stated since otherwise i'll also spin up frontend and backend and for homelab theyre not needed.
+# NOTE: Mind that base compose is not stated since otherwise it'll also spin up frontend and backend and for homelab theyre not needed.
 docker compose -f docker-compose.homelab.yml up -d
 ```
 
@@ -82,14 +82,14 @@ docker compose -f docker-compose.homelab.yml up -d
 - Adds Redis service (port 6379)
 - Adds Celery worker for async task processing
 - Adds Celery Beat for scheduled tasks
-- Uses Docker Compose profiles to conditionally start those services
+- Uses Docker Compose profiles to conditionally start those services - **DEPRECATED**
 
 **Services:**
 - `redis` - Message broker for Celery
 - `celery` - Worker process for async tasks
 - `celery-beat` - Scheduler for periodic tasks
 
-**Note:** The Celery services use the `production` profile, so they only start when explicitly enabled.
+**Note:** The Celery services used to use the `production` profile, so code prior to Jan 2026 would only spin celery when explicitly enabling production profiles.
 
 ### Fallback Configuration
 
@@ -139,29 +139,26 @@ This file contains everything in one place and can be used as a reference or whe
   - Proxies `/api/*` requests to backend service
   - Configured for `cirrostrats.us` domain
 
-### Redis Service (Homelab only - requires production profiles tag)
+### Redis Service (Homelab only - Does not require `--profiles production` tag anymore  - Jan2026)
 
 - **Image:** `redis:latest`
 - **Port:** `6379:6379`
 - **Purpose:** Message broker for Celery tasks
-- **Profile:** `production` (only starts with `--profile production`)
 
-### Celery Worker (Homelab only - requires production profiles tag)
+### Celery Worker (Homelab only - Does not require `--profiles production` tag anymore  - Jan2026)
 
 - **Build Context:** `./cirrostrats-backend`
 - **Dockerfile:** `routes/Dockerfile.celery`
 - **Command:** `celery -A routes.celery_app worker --loglevel=info`
 - **Depends on:** Redis
-- **Profile:** `production`
 - **Note:** Code changes require container restart (volumes don't auto-reload)
 
-### Celery Beat (Homelab only - requires production profiles tag)
+### Celery Beat (Homelab only - Does not require `--profiles production` tag anymore  - Jan2026)
 
 - **Build Context:** `./cirrostrats-backend`
 - **Dockerfile:** `routes/Dockerfile.celery`
 - **Command:** `celery -A routes.celery_app beat --loglevel=info`
 - **Depends on:** Redis, Celery worker
-- **Profile:** `production`
 - **Purpose:** Scheduler for periodic tasks
 
 ## Common Commands
@@ -170,13 +167,16 @@ This file contains everything in one place and can be used as a reference or whe
 
 ```bash
 # Development
+# **NOTE** Initial --no-cache buuld necessary when switching between production and dev env. Find commands for it below
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 # Production
+# **NOTE** Initial --no-cache buuld necessary when switching between production and dev env. Find commands for it below
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 # Homelab with Celery
-docker compose -f docker-compose.yml -f docker-compose.homelab.yml --profile production up -d
+# NOTE: Mind that base compose file is not stated here since otherwise it'll also spin up frontend and backend and for homelab theyre not needed.
+docker compose -f docker-compose.homelab.yml up -d
 ```
 
 ### Stopping Services
@@ -198,7 +198,8 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml build
 # Rebuild specific service
 docker compose -f docker-compose.yml -f docker-compose.dev.yml build frontend
 
-# Rebuild without cache
+# Rebuild without cache -
+# **NOTE** Initial --no-cache buuld necessary when switching between production and dev env
 docker compose -f docker-compose.yml -f docker-compose.dev.yml build --no-cache
 ```
 
@@ -239,12 +240,11 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml top
 
 | Feature | Development | Production | Homelab |
 |---------|------------|------------|---------|
-| **Frontend Port** | 5173 (direct) | 80 (via Nginx) | 80 (via Nginx) |
-| **Backend Port** | 8000 (direct) | 8000 (via Nginx) | 8000 (via Nginx) |
+| **Ports** | 5173/8000 (frontend/backend) | 80 (via Nginx) | 6379 (via Redis) |
 | **Hot Reload** | ✅ Enabled | ❌ Disabled | ❌ Disabled |
 | **Volume Mounting** | ✅ Yes | ❌ No | ❌ No (except Celery) |
-| **NODE_ENV** | development | production | production |
-| **ENV** | development | production | production |
+| **NODE_ENV** | development | production | Homelab |
+| **ENV** | development | production | Homelab |
 | **Celery Workers** | ❌ No | ❌ No | ✅ Yes |
 | **Redis** | ❌ No | ❌ No | ✅ Yes |
 | **Build Mode** | Development | Production | Production |
@@ -304,13 +304,13 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml build --no-cache
 
 ```bash
 # Ensure Redis is running
-docker compose -f docker-compose.yml -f docker-compose.homelab.yml ps redis
+docker compose -f docker-compose.homelab.yml ps redis
 
 # Check Celery logs
-docker compose -f docker-compose.yml -f docker-compose.homelab.yml logs celery
+docker compose -f docker-compose.homelab.yml logs celery
 
 # Restart Celery services
-docker compose -f docker-compose.yml -f docker-compose.homelab.yml restart celery celery-beat
+docker compose -f docker-compose.homelab.yml restart celery celery-beat
 ```
 
 ### Changes Not Reflecting
@@ -330,7 +330,7 @@ docker compose -f docker-compose.yml -f docker-compose.homelab.yml restart celer
 **Celery:**
 - Celery workers require container restart for code changes:
   ```bash
-  docker compose -f docker-compose.yml -f docker-compose.homelab.yml restart celery celery-beat
+  docker compose -f docker-compose.homelab.yml restart celery celery-beat
   ```
 
 ## Best Practices
@@ -353,6 +353,6 @@ docker compose -f docker-compose.yml -f docker-compose.homelab.yml restart celer
 - The base `docker-compose.yml` defines the core services and network
 - Override files (`*.dev.yml`, `*.prod.yml`) extend and modify the base configuration
 - Multiple `-f` flags allow composing multiple override files
-- Docker Compose profiles (`--profile production`) enable conditional service startup
+- Docker Compose profiles (`--profile production`) enable conditional service startup - **DEPRECATED**
 - The `node_modules` volume prevents conflicts between host and container dependencies
 
