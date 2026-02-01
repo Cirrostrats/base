@@ -1,6 +1,7 @@
 services:
   frontend:   # Name of the service
     # Build the docker image from the Dockerfile.frontend thats in the cirrostrats-frontend directory
+    image: ujazishere/cirrostrats-frontend:latest
     build:
       args:
         NODE_ENV: production
@@ -12,10 +13,14 @@ services:
     #   # - observability
 
   backend:
+    image: ujazishere/cirrostrats-backend:latest
+    env_file:
+      - ./cirrostrats-backend/.env
     environment:
       ENV: production
 
   nginx:
+    image: ujazishere/cirrostrats-nginx:latest
     build:
       context: ./nginx
       dockerfile: Dockerfile.nginx

@@ -21,6 +21,8 @@ services:
     command: celery -A routes.celery_app worker --loglevel=info      # Execute the tasks defined in celery_app.py This takes preecedence over the dockerfile command
     depends_on:
       - redis
+    env_file:
+      - ./cirrostrats-backend/.env
     volumes:      # Changes are not reflected instantly in celery. Restart container to see changes.
       - ./cirrostrats-backend:/app
     networks:
@@ -35,10 +37,15 @@ services:
     build:
       context: ./cirrostrats-backend      # This is where the celery_app.py file is
       dockerfile: routes/Dockerfile.celery
-    command: celery -A routes.celery_app beat --loglevel=info      # This takes preecedence over the dockerfile command
+    # RedBeat scheduler (-S redbeat.RedBeatScheduler) enables dynamic schedules via Redis
+    # Static schedules from beat_schedule dict still work alongside RedBeat
+    # **NOTE** This command takes precedence over the dockerfile command.
+    command: celery -A routes.celery_app beat -S redbeat.RedBeatScheduler --loglevel=info
     depends_on:
       - redis
       - celery
+    env_file:
+      - ./cirrostrats-backend/.env
     volumes:      # Changes are not reflected instantly in celery. Restart container to see changes.
       - ./cirrostrats-backend:/app
     networks:
