@@ -1,5 +1,6 @@
 services:
   frontend:   # Name of the service
+    restart: unless-stopped
     # Build the docker image from the Dockerfile.frontend thats in the cirrostrats-frontend directory
     build:
       context: ./cirrostrats-frontend     # Defines working directory from which the Docker will read files to build image. Docker can only access files within the context directory.
@@ -11,6 +12,7 @@ services:
       # - observability
 
   backend:
+    restart: unless-stopped
     build:
     # Build the docker image from the Dockerfile.backend in the cirrostrats-backend directory
       context: ./cirrostrats-backend

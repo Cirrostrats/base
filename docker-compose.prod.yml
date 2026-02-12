@@ -1,5 +1,6 @@
 services:
   frontend:   # Name of the service
+    restart: unless-stopped
     # Build the docker image from the Dockerfile.frontend thats in the cirrostrats-frontend directory
     image: ujazishere/cirrostrats-frontend:latest
     build:
@@ -13,6 +14,7 @@ services:
     #   # - observability
 
   backend:
+    restart: unless-stopped
     image: ujazishere/cirrostrats-backend:latest
     env_file:
       - ./cirrostrats-backend/.env
@@ -20,6 +22,7 @@ services:
       ENV: production
 
   nginx:
+    restart: unless-stopped
     image: ujazishere/cirrostrats-nginx:latest
     build:
       context: ./nginx

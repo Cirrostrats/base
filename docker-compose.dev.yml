@@ -1,5 +1,6 @@
 services:
   frontend:   # Name of the service
+    restart: unless-stopped
     # Build the docker image from the Dockerfile.frontend thats in the cirrostrats-frontend directory
     build:
       # THIS IS THE KEY: It tells Docker which stage to build
@@ -29,6 +30,7 @@ services:
       - WATCHPACK_POLLING=true   # Ensures compatibility with polling-based file watchers, especially for live-reloading in development environments.
 
   backend:
+    restart: unless-stopped
     ports:
       # Format is "HOST_PORT:CONTAINER_PORT"
       - "8000:8000"

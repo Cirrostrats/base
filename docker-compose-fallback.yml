@@ -1,11 +1,12 @@
 services:
   frontend:   # Name of the service
+    restart: unless-stopped
     # Build the docker image from the Dockerfile.frontend thats in the cirrostrats-frontend directory
     build:
       context: ./cirrostrats-frontend     # Defines working directory from which the Docker will read files to build image. Docker can only access files within the context directory.
       dockerfile: Dockerfile.frontend
       # THIS IS THE KEY: It tells Docker which stage to build
-      # target: ${BUILD_TARGET:-development} 
+      # target: ${BUILD_TARGET:-development}
       # args takes info from the .env file using ${} or hardcoded values supplied here. *** This sets the values used during image build NOT THE RUNTIME *** and this overrides the `ARG` stated in dockerfile.
       # hence, for changes in args to take effect the image needs to be rebuilt.
       args:
@@ -34,6 +35,7 @@ services:
       - WATCHPACK_POLLING=true   # Ensures compatibility with polling-based file watchers, especially for live-reloading in development environments.
 
   backend:
+    restart: unless-stopped
     build:
     # Build the docker image from the Dockerfile.backend in the cirrostrats-backend directory
       context: ./cirrostrats-backend
@@ -53,6 +55,7 @@ services:
       - "prometheus.path=/metrics"
 
   nginx:
+    restart: unless-stopped
     image: nginx
     ports:
       # Format is "HOST_PORT:CONTAINER_PORT"
@@ -68,6 +71,7 @@ services:
       # - observability
   
   redis:
+    restart: unless-stopped
     # deploy:   # This was used previously to prevent it from spawning in development. Accompany with .env file and set Run_Celery=1 if using this feature in production.
       # replicas: ${RUN_CELERY:-0}  # Defaults to 0 containers: no Celery in development
     image: redis
@@ -80,6 +84,7 @@ services:
       - production
 
   celery:
+    restart: unless-stopped
     # deploy:   # This was used previously to prevent it from spawning in development. Accompany with .env file and set Run_Celery=1 if using this feature in production.
       # replicas: ${RUN_CELERY:-0}  # Defaults to 0 containers: no Celery in development
     container_name: celery_worker
@@ -97,6 +102,7 @@ services:
       - production
 
   celery-beat:
+    restart: unless-stopped
     # deploy:   # This was used previously to prevent it from spawning in development. Accompany with .env file and set Run_Celery=1 if using this feature in production.
       # replicas: ${RUN_CELERY:-0}  # Defaults to 0 containers: no Celery in development
     container_name: celery_beat

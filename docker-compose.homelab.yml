@@ -1,5 +1,6 @@
 services:
   redis:
+    restart: unless-stopped
     # deploy:   # This was used previously to prevent it from spawning in development. Accompany with .env file and set Run_Celery=1 if using this feature in production.
       # replicas: ${RUN_CELERY:-0}  # Defaults to 0 containers: no Celery in development
     image: redis
@@ -12,6 +13,7 @@ services:
       # - production
 
   celery:
+    restart: unless-stopped
     # deploy:   # This was used previously to prevent it from spawning in development. Accompany with .env file and set Run_Celery=1 if using this feature in production.
       # replicas: ${RUN_CELERY:-0}  # Defaults to 0 containers: no Celery in development
     container_name: celery_worker
@@ -31,6 +33,7 @@ services:
       # - production
 
   celery-beat:
+    restart: unless-stopped
     # deploy:   # This was used previously to prevent it from spawning in development. Accompany with .env file and set Run_Celery=1 if using this feature in production.
       # replicas: ${RUN_CELERY:-0}  # Defaults to 0 containers: no Celery in development
     container_name: celery_beat
