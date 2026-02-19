@@ -53,9 +53,13 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d backend
 For production deployment:
 
 ```bash
+
+# NOTE: if you were already running dev previously since some dev stuff wouldve hard baked into the image.
 # Verify proper .env variables are created/used for prod before running this command since it'll be baked into the image.
-# NOTE: may have to build first if you were already running dev previously since some dev stuff wouldve hard baked into the image.
+  # ---> make sure frontend .env contains /api for backend api url.
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+
 ```
 
 **Features:**
