@@ -1,0 +1,16 @@
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-temp-dev
+    labels:
+      - "purpose=temp-dev"
+      - "note=routes port 80 to m1h frontend:5173 and backend:8000 for local dev"
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.local.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - base-network
