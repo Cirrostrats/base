@@ -110,6 +110,68 @@ def setup_env_file(project_dir: str, project_name: str, editor: str) -> None:
     print()
 
 
+def configure_journald_limits(editor: str) -> None:
+    """
+    Cap systemd-journald storage so /var/log/journal never grows unbounded.
+    Prompts the user to review the defaults, optionally edit them, then apply.
+
+    Requires root / sudo; skipped silently if not running as root so the rest
+    of setup can still proceed on a development machine.
+    """
+    if os.geteuid() != 0:
+        print("  [journald] Skipping journal limit config — not running as root.")
+        return
+
+    conf_dir = Path("/etc/systemd/journald.conf.d")
+    conf_file = conf_dir / "99-size-limit.conf"
+
+    conf_dir.mkdir(parents=True, exist_ok=True)
+
+    default_conf = (
+        "# Managed by setup.py — limits /var/log/journal growth for long-term stability.\n"
+        "[Journal]\n"
+        "SystemMaxUse=200M\n"
+        "SystemMaxFileSize=50M\n"
+        "MaxRetentionSec=2weeks\n"
+    )
+
+    customize = input(
+        "  [journald] Using defaults (SystemMaxUse=200M, SystemMaxFileSize=50M, MaxRetentionSec=2weeks)."
+        " Want to specify something else? (yes) [no]: "
+    ).strip().lower()
+
+    if customize in ("yes", "y"):
+        conf_file.write_text(default_conf)
+        print(f"  [journald] Opening {conf_file} in {editor} for editing...")
+        try:
+            subprocess.run([editor, str(conf_file)], check=True)
+        except FileNotFoundError:
+            print(f"  Editor '{editor}' not found. Edit manually: {conf_file}")
+        except subprocess.CalledProcessError:
+            print(f"  Editor exited with an error. Using file as-is: {conf_file}")
+    else:
+        conf_file.write_text(default_conf)
+        print(f"  [journald] Wrote default config to {conf_file}.")
+
+    result = subprocess.run(
+        ["systemctl", "restart", "systemd-journald"],
+        capture_output=True, text=True,
+    )
+    if result.returncode == 0:
+        print("  [journald] systemd-journald restarted — limits are now active.")
+    else:
+        print(f"  [journald] Warning: could not restart systemd-journald: {result.stderr.strip()}")
+
+    vacuum = subprocess.run(
+        ["journalctl", "--vacuum-size=200M", "--vacuum-time=2weeks"],
+        capture_output=True, text=True,
+    )
+    if vacuum.returncode == 0:
+        print(f"  [journald] Vacuum complete. {vacuum.stdout.strip()}")
+    else:
+        print(f"  [journald] Vacuum warning: {vacuum.stderr.strip()}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Setup Cirrostrats frontend and backend repos.")
     parser.add_argument(
@@ -134,7 +196,10 @@ def main():
     setup_env_file("cirrostrats-frontend", "frontend", editor)
     setup_env_file("cirrostrats-backend", "backend", editor)
 
-    print("Check compose markdown file, verify appropriate env files are in entirity and spin according to needs - dev, prod or homelab is available.")
+    print("\n*** Configuring systemd-journald rolling log limits...")
+    configure_journald_limits(editor)
+
+    print("\nCheck compose markdown file, verify appropriate env files are in entirity and spin according to needs - dev, prod or homelab is available.")
     # subprocess.run(["docker", "compose", "up"])
 
 
