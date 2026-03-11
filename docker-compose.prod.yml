@@ -9,6 +9,11 @@ services:
 
     expose:
       - "80"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     # networks:     # Connect the frontend service to the base network that all containers will share.
     #   - base-network
     #   # - observability
@@ -20,6 +25,11 @@ services:
       - ./cirrostrats-backend/.env
     environment:
       ENV: production
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
 
   nginx:
     restart: unless-stopped
@@ -39,6 +49,11 @@ services:
     networks:
       - base-network
       # - observability
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
 
 # networks:
 #   # observability:

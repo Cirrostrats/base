@@ -28,6 +28,11 @@ services:
     environment:
       - CHOKIDAR_USEPOLLING=true  # Enables polling for file changes, useful for detecting updates in mounted volumes on systems like Docker Desktop for Windows/Mac.
       - WATCHPACK_POLLING=true   # Ensures compatibility with polling-based file watchers, especially for live-reloading in development environments.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
 
   backend:
     restart: unless-stopped
@@ -40,6 +45,11 @@ services:
       - ./cirrostrats-backend/.env
     environment:
       ENV: development
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
 
   # nginx:
   #   ports:
